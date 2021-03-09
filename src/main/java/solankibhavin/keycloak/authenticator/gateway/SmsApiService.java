@@ -13,41 +13,40 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Bhavin Solanki, https://www.n-k.de, @solankibhavin
+ * @author Bhavin Solanki, @solankibhavin
  */
 
-public class SmsApiService  implements SmsService {
-    final static String urlForPlSmsapi = "http://api.smsapi.pl/";
-    final static String urlForComSmsapi = "http://api.smsapi.com/";
-    
-    private final String senderId;
+public class SmsApiService implements SmsService {
+	final static String urlForPlSmsapi = "http://api.smsapi.pl/";
+	final static String urlForComSmsapi = "http://api.smsapi.com/";
 
-    SmsApiService(Map<String, String> config) {
+	private final String senderId;
+
+	SmsApiService(Map<String, String> config) {
 		senderId = config.get("senderId");
 	}
 
-    @Override
-    public void send(String phoneNumber, String message) {
-        try {
-            String oauthToken = "00000000000000000000000000000000";//senderId;
-            OAuthClient client = new OAuthClient(oauthToken);
-	    ProxyNative proxyToPlOrComSmsapi = new ProxyNative(urlForPlSmsapi);
+	@Override
+	public void send(String phoneNumber, String message) {
+		try {
+			String oauthToken = "";// senderId
+			OAuthClient client = new OAuthClient(oauthToken);
+			ProxyNative proxyToPlOrComSmsapi = new ProxyNative(urlForComSmsapi);
 
-            SmsFactory smsApi = new SmsFactory(client, proxyToPlOrComSmsapi);
-            //String phoneNumber = "000000000";
-            SMSSend action = smsApi.actionSend()
-                    .setText("test")//message
-                    .setTo(phoneNumber);
+			SmsFactory smsApi = new SmsFactory(client, proxyToPlOrComSmsapi);
 
-            StatusResponse result = action.execute();
+			SMSSend action = smsApi.actionSend().setText(message)// message
+					.setTo(phoneNumber);
 
-            for (MessageResponse status : result.getList() ) {
-                System.out.println(status.getNumber() + " " + status.getStatus());
-            }
-        } catch (ClientException e) {
-            e.printStackTrace();
-        } catch (SmsapiException e) {
-            e.printStackTrace();
-        }
-    }
+			StatusResponse result = action.execute();
+
+			for (MessageResponse status : result.getList()) {
+				System.out.println(status.getNumber() + " " + status.getStatus());
+			}
+		} catch (ClientException e) {
+			e.printStackTrace();
+		} catch (SmsapiException e) {
+			e.printStackTrace();
+		}
+	}
 }

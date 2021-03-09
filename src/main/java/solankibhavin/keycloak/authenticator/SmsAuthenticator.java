@@ -31,7 +31,7 @@ public class SmsAuthenticator implements Authenticator {
 
 		String mobileNumber = user.getFirstAttribute("mobile_number");
 		// mobileNumber of course has to be further validated on proper format, country code, ...
-
+		System.out.println(mobileNumber);
 		int length = Integer.parseInt(config.getConfig().get("length"));
 		int ttl = Integer.parseInt(config.getConfig().get("ttl"));
 
@@ -50,6 +50,7 @@ public class SmsAuthenticator implements Authenticator {
 
 			context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
 		} catch (Exception e) {
+			e.printStackTrace();
 			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
 				context.form().setError("smsAuthSmsNotSent", e.getMessage())
 					.createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
