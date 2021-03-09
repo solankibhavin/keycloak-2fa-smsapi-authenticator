@@ -1,6 +1,5 @@
 package solankibhavin.keycloak.authenticator.gateway;
 
-
 import pl.smsapi.OAuthClient;
 import pl.smsapi.api.SmsFactory;
 import pl.smsapi.api.action.sms.SMSSend;
