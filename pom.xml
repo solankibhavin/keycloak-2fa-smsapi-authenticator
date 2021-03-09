@@ -84,15 +84,17 @@
 			</plugin>
 		</plugins>
 	</build>
-	<repository>
-	    <releases>
-	        <enabled>true</enabled>
-	        <updatePolicy>always</updatePolicy>
-	        <checksumPolicy>fail</checksumPolicy>
-	    </releases>
-	    <id>smsapi</id>
-	    <name>smsapi</name>
-	    <url>https://labs.smsapi.com/maven/</url>
-	    <layout>default</layout>
-	</repository>
+	<repositories>
+		<repository>
+		    <releases>
+		        <enabled>true</enabled>
+		        <updatePolicy>always</updatePolicy>
+		        <checksumPolicy>fail</checksumPolicy>
+		    </releases>
+		    <id>smsapi</id>
+		    <name>smsapi</name>
+		    <url>https://labs.smsapi.com/maven/</url>
+		    <layout>default</layout>
+		</repository>
+	</repositories>
 </project>
