@@ -1,10 +1,12 @@
 package solankibhavin.keycloak.authenticator;
 
-import solankibhavin.keycloak.authenticator.gateway.SmsServiceFactory;
+import java.util.Locale;
+
+import javax.ws.rs.core.Response;
+
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
-import org.keycloak.common.util.RandomString;
 import org.keycloak.models.AuthenticationExecutionModel;
 import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
@@ -13,8 +15,7 @@ import org.keycloak.models.UserModel;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.theme.Theme;
 
-import javax.ws.rs.core.Response;
-import java.util.Locale;
+import solankibhavin.keycloak.authenticator.gateway.SmsServiceFactory;
 
 /**
  * @author Bhavin Solanki, @solankibhavin
@@ -22,6 +23,8 @@ import java.util.Locale;
 public class SmsAuthenticator implements Authenticator {
 
 	private static final String TPL_CODE = "login-sms.ftl";
+	private static final int MINIMUM_OTP = 100000;
+	private static final int MAXIMUM_OTP = 999999;
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
@@ -30,14 +33,14 @@ public class SmsAuthenticator implements Authenticator {
 		UserModel user = context.getUser();
 
 		String mobileNumber = user.getFirstAttribute("mobile_number");
-		// mobileNumber of course has to be further validated on proper format, country code, ...
-		System.out.println(mobileNumber);
-		int length = Integer.parseInt(config.getConfig().get("length"));
+		// mobileNumber of course has to be further validated on proper format, country
+		// code, ...
+		//int length = Integer.parseInt(config.getConfig().get("length"));
 		int ttl = Integer.parseInt(config.getConfig().get("ttl"));
 
-		String code = RandomString.randomCode(length);
+		int code = randomOtp(); // RandomString.randomCode(length);
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
-		authSession.setAuthNote("code", code);
+		authSession.setAuthNote("code", String.valueOf(code));
 		authSession.setAuthNote("ttl", Long.toString(System.currentTimeMillis() + (ttl * 1000)));
 
 		try {
@@ -52,8 +55,8 @@ public class SmsAuthenticator implements Authenticator {
 		} catch (Exception e) {
 			e.printStackTrace();
 			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
-				context.form().setError("smsAuthSmsNotSent", e.getMessage())
-					.createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
+					context.form().setError("smsAuthSmsNotSent", e.getMessage())
+							.createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
 		}
 	}
 
@@ -67,7 +70,7 @@ public class SmsAuthenticator implements Authenticator {
 
 		if (code == null || ttl == null) {
 			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
-				context.form().createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
+					context.form().createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
 			return;
 		}
 
@@ -76,7 +79,7 @@ public class SmsAuthenticator implements Authenticator {
 			if (Long.parseLong(ttl) < System.currentTimeMillis()) {
 				// expired
 				context.failureChallenge(AuthenticationFlowError.EXPIRED_CODE,
-					context.form().setError("smsAuthCodeExpired").createErrorPage(Response.Status.BAD_REQUEST));
+						context.form().setError("smsAuthCodeExpired").createErrorPage(Response.Status.BAD_REQUEST));
 			} else {
 				// valid
 				context.success();
@@ -85,9 +88,8 @@ public class SmsAuthenticator implements Authenticator {
 			// invalid
 			AuthenticationExecutionModel execution = context.getExecution();
 			if (execution.isRequired()) {
-				context.failureChallenge(AuthenticationFlowError.INVALID_CREDENTIALS,
-					context.form().setAttribute("realm", context.getRealm())
-						.setError("smsAuthCodeInvalid").createForm(TPL_CODE));
+				context.failureChallenge(AuthenticationFlowError.INVALID_CREDENTIALS, context.form()
+						.setAttribute("realm", context.getRealm()).setError("smsAuthCodeInvalid").createForm(TPL_CODE));
 			} else if (execution.isConditional() || execution.isAlternative()) {
 				context.attempted();
 			}
@@ -110,6 +112,11 @@ public class SmsAuthenticator implements Authenticator {
 
 	@Override
 	public void close() {
+	}
+
+	private int randomOtp() {
+
+		return (int) (Math.random() * (MAXIMUM_OTP - MINIMUM_OTP + 1) + MINIMUM_OTP);
 	}
 
 }
