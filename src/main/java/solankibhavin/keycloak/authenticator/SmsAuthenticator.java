@@ -32,10 +32,11 @@ public class SmsAuthenticator implements Authenticator {
 		KeycloakSession session = context.getSession();
 		UserModel user = context.getUser();
 
+		String sms2faEnabled = user.getFirstAttribute("sms_2fa_enabled");
 		String mobileNumber = user.getFirstAttribute("mobile_number");
 		// mobileNumber of course has to be further validated on proper format, country
 		// code, ...
-		//int length = Integer.parseInt(config.getConfig().get("length"));
+		// int length = Integer.parseInt(config.getConfig().get("length"));
 		int ttl = Integer.parseInt(config.getConfig().get("ttl"));
 
 		int code = randomOtp(); // RandomString.randomCode(length);
@@ -49,9 +50,13 @@ public class SmsAuthenticator implements Authenticator {
 			String smsAuthText = theme.getMessages(locale).getProperty("smsAuthText");
 			String smsText = String.format(smsAuthText, code, Math.floorDiv(ttl, 60));
 
-			SmsServiceFactory.get(config.getConfig()).send(mobileNumber, smsText);
+			if (sms2faEnabled.equals("true")) {
+				SmsServiceFactory.get(config.getConfig()).send(mobileNumber, smsText);
 
-			context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
+				context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
+			} else {
+				context.success();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,

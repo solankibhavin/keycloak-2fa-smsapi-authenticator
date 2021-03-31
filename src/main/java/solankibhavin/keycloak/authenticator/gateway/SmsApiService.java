@@ -29,7 +29,7 @@ public class SmsApiService implements SmsService {
 	@Override
 	public void send(String phoneNumber, String message) {
 		try {
-			String oauthToken = "";// senderId
+			String oauthToken = this.senderId;// senderId
 			OAuthClient client = new OAuthClient(oauthToken);
 			ProxyNative proxyToPlOrComSmsapi = new ProxyNative(urlForComSmsapi);
 
