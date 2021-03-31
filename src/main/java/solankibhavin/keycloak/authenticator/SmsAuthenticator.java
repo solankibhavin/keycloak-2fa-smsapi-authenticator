@@ -32,7 +32,10 @@ public class SmsAuthenticator implements Authenticator {
 		KeycloakSession session = context.getSession();
 		UserModel user = context.getUser();
 
-		String sms2faEnabled = user.getFirstAttribute("sms_2fa_enabled");
+		String sms2faEnabled = null ;
+		if(user.getFirstAttribute("sms_2fa_enabled") != null) {
+			sms2faEnabled = user.getFirstAttribute("sms_2fa_enabled");
+		}
 		String mobileNumber = user.getFirstAttribute("mobile_number");
 		// mobileNumber of course has to be further validated on proper format, country
 		// code, ...
@@ -50,7 +53,7 @@ public class SmsAuthenticator implements Authenticator {
 			String smsAuthText = theme.getMessages(locale).getProperty("smsAuthText");
 			String smsText = String.format(smsAuthText, code, Math.floorDiv(ttl, 60));
 
-			if (sms2faEnabled.equals("true")) {
+			if (sms2faEnabled != null && sms2faEnabled.equals("true")) {
 				SmsServiceFactory.get(config.getConfig()).send(mobileNumber, smsText);
 
 				context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
